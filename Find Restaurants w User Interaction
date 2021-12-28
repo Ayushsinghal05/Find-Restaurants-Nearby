@@ -1,0 +1,44 @@
+import json, requests
+name_coordinates_of_restaurant = []
+y=[]
+def home_address_location(home_address, city_name):
+  response = requests.get('https://api.tomtom.com/search/2/search/' + str(home_address) + str(city_name) + '.json?&idxSet=PAD&key=m7SgG97ZZyyJcMsqWVlGCla0hHDjKJWO')
+  home_address_info = response.json() 
+  results_of_home = home_address_info['results'][0]
+  position_of_home = results_of_home['position']
+  latitude = position_of_home['lat']
+  longtitude = position_of_home['lon']
+  return (latitude, longtitude)
+
+def special_restaurant(restaurant_type, latitude, longtitude):
+  response_special_restaurant = requests.get('https://api.tomtom.com/search/2/search/' + str(restaurant_type) + '.json?typeahead=true&countrySet=United%20States&extendedPostalCodesFor=POI&idxSet=POI&lat=' + str(latitude) + '&lon=' + str(longtitude) + '&key=m7SgG97ZZyyJcMsqWVlGCla0hHDjKJWO')
+  special_restaurant_result = response_special_restaurant.json()
+  results_of_restaurant = special_restaurant_result['results']
+  for x in results_of_restaurant:
+  #  print(x)
+    name_of_restaurant = [x['poi']['name'], x['position']]
+    name_coordinates_of_restaurant.append(name_of_restaurant)
+  #print(name_coordinates_of_restaurant)
+  return (name_coordinates_of_restaurant)
+  #position_of_restaurant = results_of_restaurant['position']
+ # print(name_of_restaurant, position_of_restaurant)
+
+def distance_between_address_and_restaurant(home_lat, home_lon, rest_coordinate):
+  for x in rest_coordinate:
+    #print(x)
+    x_lat = x[1]['lat']
+    x_longt = x[1]['lon']
+    response_distance = requests.get('https://api.tomtom.com/routing/1/calculateRoute/' + str(home_lat) + ',' + str(home_lon) + ':' + str(x_lat) + ',' + str(x_longt) + '/json?key=m7SgG97ZZyyJcMsqWVlGCla0hHDjKJWO')
+    results_distance = response_distance.json()
+    distance_of_restaurant = results_distance['routes'][0]['summary']['lengthInMeters']
+    name_distance_rs = [distance_of_restaurant, x[0]]
+    y.append(name_distance_rs)
+    y.sort()
+  print(y)
+address = input("Enter Address:")
+city_state = input("Enter City and State:")
+##Main program
+home_coordinates=home_address_location(address, city_state)
+#print(home_coordinates[0], home_coordinates[1])
+restaurants_coordinates= special_restaurant('indian%20restaurant', home_coordinates[0], home_coordinates[1])
+distance_between_address_and_restaurant(home_coordinates[0], home_coordinates[1], restaurants_coordinates)
